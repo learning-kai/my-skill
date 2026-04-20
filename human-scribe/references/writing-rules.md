@@ -7,6 +7,7 @@
 - Use lists only when they improve clarity.
 - Make sentence length and rhythm less uniform.
 - End with a real conclusion, not a generic summary line.
+- Reduce parenthetical asides; excessive use of parentheses makes text feel fragmented and AI-generated.
 
 ## Useful Transformations
 - Bullet list -> explanatory paragraph
