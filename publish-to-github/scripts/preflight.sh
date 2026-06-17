@@ -113,6 +113,55 @@ check_readme_release_signals() {
   fi
 }
 
+check_readme_language_links() {
+  local path="$1"
+  local readme="$path/README.md"
+  local readme_zh="$path/README.zh-CN.md"
+
+  if [[ ! -f "$readme" || ! -f "$readme_zh" ]]; then
+    return
+  fi
+
+  if grep -Eq '\]\(README\.zh-CN\.md\)' "$readme"; then
+    echo "[OK] README.md links to README.zh-CN.md"
+  else
+    warn "README.md is missing a visible link to README.zh-CN.md."
+  fi
+
+  if grep -Eq '\]\(README\.md\)' "$readme_zh"; then
+    echo "[OK] README.zh-CN.md links back to README.md"
+  else
+    warn "README.zh-CN.md is missing a visible link back to README.md."
+  fi
+}
+
+check_readme_core_sections() {
+  local path="$1"
+  local readme="$path/README.md"
+  local readme_zh="$path/README.zh-CN.md"
+  local label
+
+  if [[ -f "$readme" ]]; then
+    for label in "Quick Start" Installation Usage "Project Publishing" "Skill Publishing" Troubleshooting License; do
+      if grep -Eq "^#{2,3}[[:space:]]+$label([[:space:]]|$)" "$readme"; then
+        echo "[OK] README.md has $label section"
+      else
+        warn "README.md is missing a high-star README section: $label."
+      fi
+    done
+  fi
+
+  if [[ -f "$readme_zh" ]]; then
+    for label in 快速开始 安装 使用 普通项目发布 "Skill 发布" 故障排查 License; do
+      if grep -Eq "^#{2,3}[[:space:]]+$label([[:space:]]|$)" "$readme_zh"; then
+        echo "[OK] README.zh-CN.md has $label section"
+      else
+        warn "README.zh-CN.md is missing a high-star README section: $label."
+      fi
+    done
+  fi
+}
+
 check_skill_frontmatter() {
   local path="$1"
   local skill_md="$path/SKILL.md"
@@ -193,6 +242,8 @@ show_quality_gate() {
   check_file "$path" "README.zh-CN.md" "README.zh-CN.md exists" "README.zh-CN.md is missing"
   check_license "$path"
   check_readme_release_signals "$path"
+  check_readme_language_links "$path"
+  check_readme_core_sections "$path"
   check_mojibake "$path"
   check_placeholders "$path"
 

@@ -6,7 +6,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-`publish-to-github` is a Codex, Claude Code, and Kiro skill for preparing and publishing local projects or agent skills to GitHub. It treats publishing as a release workflow: inspect the repository, run a high-quality readiness review, validate skill metadata when present, stage only intended files, commit, push, and optionally create GitHub Releases.
+`publish-to-github` is a Codex, Claude Code, and Kiro skill for publishing local projects or skills to GitHub with a release-style workflow.
 
 ## What It Does
 
@@ -17,13 +17,25 @@ English | [简体中文](README.zh-CN.md)
 - Preserves skill-specific checks for `SKILL.md`, `.skill` packages, and release assets.
 - Keeps source publishing separate from tags and releases unless the user explicitly confirms release creation.
 
+## Quick Start
+
+```text
+Use publish-to-github to prepare this project and publish it to GitHub.
+```
+
+```text
+Use publish-to-github to review and publish my local skill directory.
+```
+
 ## Prerequisites
 
-- [Git](https://git-scm.com/) installed and configured.
-- [GitHub CLI (`gh`)](https://cli.github.com/) installed and authenticated for release creation and credential checks.
-- PowerShell 5.1 or later on Windows for `scripts/preflight.ps1`.
-- Bash, Git, and standard Unix tools on macOS or Linux for `scripts/preflight.sh` and `scripts/make_release.sh`.
-- Python 3.10 or later when validating skills with `skill-creator/scripts/quick_validate.py`.
+- Git installed and configured.
+- GitHub CLI (`gh`) installed and authenticated for release creation and checks.
+- Windows: PowerShell 7+ for `scripts/preflight.ps1` and `scripts/test_preflight.ps1`.
+- macOS / Linux: Bash and Git for `scripts/preflight.sh` and `scripts/make_release.sh`.
+- Python 3.10+ when validating skills with `skill-creator/scripts/quick_validate.py`.
+
+Supported platforms: Windows, macOS, and Linux.
 
 ## Installation
 
@@ -47,23 +59,7 @@ Manual install: copy or clone this directory into one of your agent skill folder
 | Claude Code | `~/.claude/skills/publish-to-github/` |
 | Kiro | Your configured Kiro skills directory |
 
-For a repository clone, place the `publish-to-github/` directory under the chosen skill folder. The skill name is `publish-to-github`; older references to `publish-skills-to-github` should be treated as compatibility wording only.
-
 ## Usage
-
-Example prompts:
-
-```text
-Use publish-to-github to prepare this project and publish it to GitHub.
-```
-
-```text
-Use publish-to-github to review and publish my local skill directory.
-```
-
-```text
-Use publish-to-github to create a GitHub Release for this skill after validation.
-```
 
 The skill uses the current `origin` remote when one exists. If no suitable remote is configured, it asks for the GitHub repository URL instead of inventing one.
 
@@ -87,19 +83,13 @@ bash scripts/preflight.sh --repo-root /path/to/repo --mode skill --project-name 
 bash scripts/preflight.sh --repo-root /path/to/repo --mode project --project-name my-project
 ```
 
-Modes:
-
-| Mode | Behavior |
-| --- | --- |
-| `auto` | Uses skill mode when `SKILL.md` exists, otherwise project mode. |
-| `project` | Reviews the target as an ordinary GitHub project. |
-| `skill` | Reviews the target as an agent skill and validates `SKILL.md`. |
-
 ## Readiness Gate
 
 Before publishing, the skill checks the target for:
 
 - English `README.md` and Simplified Chinese `README.zh-CN.md`.
+- Visible language switch links near the top of both READMEs.
+- A concise positioning statement, quickstart, installation, usage, troubleshooting, and license in both READMEs.
 - License file.
 - Git remote, branch, upstream, and pending changes.
 - Secret-looking, generated, cache, log, and large files.
@@ -114,11 +104,11 @@ When standard verification commands exist, the skill runs them before publishing
 
 For ordinary projects, the workflow is:
 
-1. Identify target path, repository root, branch, upstream, and remote.
+1. Identify the target path, repository root, branch, upstream, and remote.
 2. Run preflight in project or auto mode.
-3. Fix readiness issues such as missing bilingual README files, `.gitignore`, mojibake, or placeholders.
+3. Fix readiness issues such as missing bilingual README files, `.gitignore`, mojibake, placeholders, or risky pending paths.
 4. Run available tests, builds, and linters.
-5. Inspect `git status --short` and diffs.
+5. Inspect `git status --short` and the relevant diff.
 6. Ask for confirmation before staging, committing, pushing, tagging, or releasing.
 7. Stage only intended paths.
 8. Commit and push.
@@ -150,15 +140,18 @@ Package and release every skill found in a repository:
 bash scripts/make_release.sh --repo-root /path/to/repo --version v1.0.0 --all --notes "Initial skill release"
 ```
 
-The helper requires `gh` and creates a Git tag and GitHub Release after confirmation in the skill workflow.
-
 ## Troubleshooting
 
 - **No remote is configured**: add a GitHub remote or provide the repository URL when the skill asks.
 - **GitHub CLI is not authenticated**: run `gh auth login`.
 - **Preflight reports missing bilingual README files**: add `README.md` and `README.zh-CN.md` before publishing.
+- **Language links are missing**: add visible links between the two README files near the top.
 - **Validation finds mojibake**: fix the corrupted text before publishing. A broken README is not a charming personality trait.
 - **Tests fail**: fix the project first; the skill should not publish known-bad code.
+
+## Contributing
+
+Follow the preflight output, keep the README pair in sync, and stage only the intended paths.
 
 ## License
 

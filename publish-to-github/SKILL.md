@@ -77,17 +77,25 @@ Require bilingual README files for every publish target:
 
 - `README.md`: English primary README for GitHub landing pages.
 - `README.zh-CN.md`: Simplified Chinese README with equivalent usage information.
+- Both files must include a visible language switch near the top:
+  - `README.md` links to `README.zh-CN.md`.
+  - `README.zh-CN.md` links back to `README.md`.
+- The two README files should expose the same core sections, even when the wording is localized instead of mechanically translated.
 
 Both READMEs should include:
 
+- A concise one-sentence positioning statement near the top.
 - What the project or skill does.
 - Prerequisites and supported platforms.
 - Installation or setup.
+- A quickstart or fastest useful path.
 - Basic usage examples.
 - Configuration, if any.
 - Test/build/publish commands, if relevant.
 - Troubleshooting or FAQ for common failure points.
 - License.
+
+For high-star-style README structure, prefer a compact top section with a clear title, badges, language switch, one-sentence value proposition, quickstart, installation, usage examples, release or version information, FAQ/troubleshooting, contribution notes when appropriate, and license. Do not bury the value proposition below three screens of ceremony; users are impatient, and honestly they are right to be.
 
 For skills, also include:
 

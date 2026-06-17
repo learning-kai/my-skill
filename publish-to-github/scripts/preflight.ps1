@@ -162,7 +162,7 @@ function Test-SkillFrontmatter {
     return
   }
 
-  $content = Get-Content -Raw -LiteralPath $skillFile
+  $content = Get-Content -Raw -Encoding utf8 -LiteralPath $skillFile
   $match = [regex]::Match($content, "(?s)^---\r?\n(.*?)\r?\n---")
   if (-not $match.Success) {
     Warn "SKILL.md frontmatter is missing or malformed"
@@ -208,7 +208,7 @@ function Test-ReadmeReleaseSignals {
     return
   }
 
-  $content = Get-Content -Raw -LiteralPath $readme
+  $content = Get-Content -Raw -Encoding utf8 -LiteralPath $readme
   if ($content -match "img\.shields\.io/github/v/release|/releases/latest") {
     Write-Host "[OK] README.md has a release badge"
   } else {
@@ -225,6 +225,59 @@ function Test-ReadmeReleaseSignals {
     Write-Host "[OK] README.md has a PowerShell install command"
   } else {
     Warn "README.md is missing a one-line PowerShell install command."
+  }
+}
+
+function Test-ReadmeLanguageLinks {
+  param([string]$TargetPath)
+
+  $readme = Join-Path $TargetPath "README.md"
+  $readmeZh = Join-Path $TargetPath "README.zh-CN.md"
+
+  if ((-not (Test-Path -LiteralPath $readme -PathType Leaf)) -or
+      (-not (Test-Path -LiteralPath $readmeZh -PathType Leaf))) {
+    return
+  }
+
+  $content = Get-Content -Raw -Encoding utf8 -LiteralPath $readme
+  $zhContent = Get-Content -Raw -Encoding utf8 -LiteralPath $readmeZh
+
+  if ($content -match "\]\(README\.zh-CN\.md\)") {
+    Write-Host "[OK] README.md links to README.zh-CN.md"
+  } else {
+    Warn "README.md is missing a visible link to README.zh-CN.md."
+  }
+
+  if ($zhContent -match "\]\(README\.md\)") {
+    Write-Host "[OK] README.zh-CN.md links back to README.md"
+  } else {
+    Warn "README.zh-CN.md is missing a visible link back to README.md."
+  }
+}
+
+function Test-ReadmeCoreSections {
+  param([string]$TargetPath)
+
+  $sectionChecks = @(
+    @{ File = "README.md"; Labels = @("Quick Start", "Installation", "Usage", "Project Publishing", "Skill Publishing", "Troubleshooting", "License"); Name = "README.md" },
+    @{ File = "README.zh-CN.md"; Labels = @("快速开始", "安装", "使用", "普通项目发布", "Skill 发布", "故障排查", "License"); Name = "README.zh-CN.md" }
+  )
+
+  foreach ($check in $sectionChecks) {
+    $file = Join-Path $TargetPath $check.File
+    if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+      continue
+    }
+
+    $content = Get-Content -Raw -Encoding utf8 -LiteralPath $file
+    foreach ($label in $check.Labels) {
+      $pattern = "(?m)^#{2,3}\s+$([regex]::Escape($label))(?:\s|$)"
+      if ($content -match $pattern) {
+        Write-Host "[OK] $($check.Name) has $label section"
+      } else {
+        Warn "$($check.Name) is missing a high-star README section: $label."
+      }
+    }
   }
 }
 
@@ -324,6 +377,8 @@ function Show-QualityGate {
   Test-FilePresence -TargetPath $TargetPath -FileName "README.zh-CN.md" -OkMessage "README.zh-CN.md exists" -MissingMessage "README.zh-CN.md is missing" | Out-Null
   Test-License -TargetPath $TargetPath
   Test-ReadmeReleaseSignals -TargetPath $TargetPath
+  Test-ReadmeLanguageLinks -TargetPath $TargetPath
+  Test-ReadmeCoreSections -TargetPath $TargetPath
   Test-Mojibake -TargetPath $TargetPath
   Test-PlaceholderLiterals -TargetPath $TargetPath
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Cloudflare Pages Deploy"
+  short_description: "Publish sites via GitHub and Cloudflare Pages"
+  default_prompt: "Use $github-cloudflare-pages-deploy to publish this frontend project to GitHub and Cloudflare Pages with a custom domain."
