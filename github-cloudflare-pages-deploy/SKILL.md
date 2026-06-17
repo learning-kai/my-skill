@@ -24,9 +24,11 @@ If the target domain is not specified, ask before creating Cloudflare records. G
 
 ## Local Preflight
 
-`<skill-dir>` is the directory where this skill is installed, typically
-`~/.claude/skills/github-cloudflare-pages-deploy` on macOS/Linux or
-`%USERPROFILE%\.claude\skills\github-cloudflare-pages-deploy` on Windows.
+`<skill-dir>` is the directory where this skill is installed. Common examples:
+
+- Codex: `~/.codex/skills/github-cloudflare-pages-deploy`
+- Claude Code: `~/.claude/skills/github-cloudflare-pages-deploy`
+- Kiro or custom runtimes: use the skills directory configured by that environment.
 
 **Windows** — run `scripts/preflight.ps1`:
 
