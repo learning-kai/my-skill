@@ -1,14 +1,10 @@
 param(
   [string]$Repository = "learning-kai/my-skill",
-  [string]$SkillName = $env:SKILL_NAME,
+  [string]$SkillName = "human-scribe",
   [string]$Destination = (Join-Path $env:USERPROFILE ".codex\skills")
 )
 
 $ErrorActionPreference = "Stop"
-
-if ([string]::IsNullOrWhiteSpace($SkillName)) {
-  $SkillName = "publish-to-github"
-}
 
 $archiveName = "$SkillName.skill"
 $downloadUrl = "https://github.com/$Repository/releases/latest/download/$archiveName"
