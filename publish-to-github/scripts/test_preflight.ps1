@@ -21,8 +21,8 @@ function New-FixtureRepo {
     git config user.name "Preflight Test"
 
     Set-Content -LiteralPath ".gitignore" -Value "*.log`n.env`n" -NoNewline
-    Set-Content -LiteralPath "README.md" -Value "# $Name`n`nEnglish readme.`n" -NoNewline
-    Set-Content -LiteralPath "README.zh-CN.md" -Value "# $Name`n`n中文说明。`n" -NoNewline
+    Set-Content -LiteralPath "README.md" -Value "# $Name`n`n[![Latest release](https://img.shields.io/github/v/release/example/$Name)](https://github.com/example/$Name/releases/latest)`n`nEnglish readme.`n`n``````bash`ncurl -fsSL https://github.com/example/$Name/releases/latest/download/install.sh | bash`n```````n`n``````powershell`nirm https://github.com/example/$Name/releases/latest/download/install.ps1 | iex`n```````n" -NoNewline
+    Set-Content -LiteralPath "README.zh-CN.md" -Value "# $Name`n`n[![最新发布](https://img.shields.io/github/v/release/example/$Name)](https://github.com/example/$Name/releases/latest)`n`n中文说明。`n`n``````bash`ncurl -fsSL https://github.com/example/$Name/releases/latest/download/install.sh | bash`n```````n`n``````powershell`nirm https://github.com/example/$Name/releases/latest/download/install.ps1 | iex`n```````n" -NoNewline
     Set-Content -LiteralPath "LICENSE" -Value "MIT`n" -NoNewline
 
     if ($Skill) {
@@ -73,6 +73,9 @@ try {
   Assert-Contains $projectResult.Text "Mode: project"
   Assert-Contains $projectResult.Text "[OK] README.md exists"
   Assert-Contains $projectResult.Text "[OK] README.zh-CN.md exists"
+  Assert-Contains $projectResult.Text "[OK] README.md has a release badge"
+  Assert-Contains $projectResult.Text "[OK] README.md has a curl install command"
+  Assert-Contains $projectResult.Text "[OK] README.md has a PowerShell install command"
   Assert-Contains $projectResult.Text "npm test"
   Assert-Contains $projectResult.Text "npm run build"
 
@@ -85,6 +88,9 @@ try {
   Assert-Contains $skillResult.Text "[OK] SKILL.md frontmatter: name=sample-skill"
   Assert-Contains $skillResult.Text "[OK] README.md exists"
   Assert-Contains $skillResult.Text "[OK] README.zh-CN.md exists"
+  Assert-Contains $skillResult.Text "[OK] README.md has a release badge"
+  Assert-Contains $skillResult.Text "[OK] README.md has a curl install command"
+  Assert-Contains $skillResult.Text "[OK] README.md has a PowerShell install command"
 
   $missingReadme = Join-Path $skillRepo "README.zh-CN.md"
   Remove-Item -LiteralPath $missingReadme

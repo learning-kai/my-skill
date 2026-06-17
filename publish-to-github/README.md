@@ -1,6 +1,7 @@
 # publish-to-github
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/learning-kai/my-skill?label=release)](https://github.com/learning-kai/my-skill/releases/latest)
 ![Platform: Windows | macOS | Linux](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 
 English | [简体中文](README.zh-CN.md)
@@ -26,7 +27,19 @@ English | [简体中文](README.zh-CN.md)
 
 ## Installation
 
-Copy or clone this directory into one of your agent skill folders:
+Install from the latest GitHub Release:
+
+```bash
+curl -fsSL https://github.com/learning-kai/my-skill/releases/latest/download/install.sh | bash
+```
+
+Windows PowerShell:
+
+```powershell
+irm https://github.com/learning-kai/my-skill/releases/latest/download/install.ps1 | iex
+```
+
+Manual install: copy or clone this directory into one of your agent skill folders.
 
 | Agent | Default skill path |
 | --- | --- |

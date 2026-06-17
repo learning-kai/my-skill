@@ -200,6 +200,34 @@ function Test-License {
   Warn "License file is missing. Ask the user which license to use before publishing."
 }
 
+function Test-ReadmeReleaseSignals {
+  param([string]$TargetPath)
+
+  $readme = Join-Path $TargetPath "README.md"
+  if (-not (Test-Path -LiteralPath $readme -PathType Leaf)) {
+    return
+  }
+
+  $content = Get-Content -Raw -LiteralPath $readme
+  if ($content -match "img\.shields\.io/github/v/release|/releases/latest") {
+    Write-Host "[OK] README.md has a release badge"
+  } else {
+    Warn "README.md is missing a GitHub release badge or latest-release link."
+  }
+
+  if ($content -match "curl\s+(-[A-Za-z0-9]+\s+)*https?://") {
+    Write-Host "[OK] README.md has a curl install command"
+  } else {
+    Warn "README.md is missing a one-line curl install command."
+  }
+
+  if ($content -match "irm\s+https?://.+\|\s*iex") {
+    Write-Host "[OK] README.md has a PowerShell install command"
+  } else {
+    Warn "README.md is missing a one-line PowerShell install command."
+  }
+}
+
 function Test-Mojibake {
   param([string]$TargetPath)
 
@@ -295,6 +323,7 @@ function Show-QualityGate {
   Test-FilePresence -TargetPath $TargetPath -FileName "README.md" -OkMessage "README.md exists" -MissingMessage "README.md is missing" | Out-Null
   Test-FilePresence -TargetPath $TargetPath -FileName "README.zh-CN.md" -OkMessage "README.zh-CN.md exists" -MissingMessage "README.zh-CN.md is missing" | Out-Null
   Test-License -TargetPath $TargetPath
+  Test-ReadmeReleaseSignals -TargetPath $TargetPath
   Test-Mojibake -TargetPath $TargetPath
   Test-PlaceholderLiterals -TargetPath $TargetPath
 

@@ -65,6 +65,12 @@ The preflight scripts are read-only. They must not stage, commit, push, delete, 
 
 Before any publish action, inspect the target and fix issues that would make the repository look incomplete, unreliable, or amateurish on GitHub.
 
+Scale the gate to the target type. High-star polish means low friction and clear value, not blindly stuffing every repository with the same marketing furniture:
+
+- Visual projects, dashboards, games, UI kits, and demos should include screenshots, GIFs, live demos, playgrounds, or benchmark images when those assets help users judge the result quickly.
+- CLI tools, libraries, automation workflows, and skills should prioritize badges, one-line install commands, fast quickstarts, examples, troubleshooting, releases, and trustworthy verification notes. Screenshots or GIFs are optional unless the tool produces visual output.
+- For tiny or narrowly scoped projects, keep the README compact but still make the value, install path, usage, license, and release status obvious within the first few sections.
+
 ### Documentation
 
 Require bilingual README files for every publish target:
@@ -88,6 +94,10 @@ For skills, also include:
 - Supported agents or environments.
 - Installation paths for Codex, Claude Code, and Kiro when applicable.
 - Example trigger prompts.
+- Release badge that points to the latest GitHub Release.
+- One-line install commands:
+  - macOS / Linux: `curl -fsSL <latest-release-install.sh-url> | bash`
+  - Windows: `irm <latest-release-install.ps1-url> | iex`
 - Packaging or release installation instructions when `.skill` assets are published.
 
 ### Repository Hygiene
@@ -212,6 +222,14 @@ bash "<skill-dir>/scripts/make_release.sh" --repo-root "<repo-root>" --version v
 ```
 
 If `skill-creator/scripts/package_skill.py` is available, use it. Otherwise zip the skill directory while excluding caches and generated files.
+
+High-star skill releases should include:
+
+- A `.skill` package asset.
+- `install.sh` for the one-line curl install path.
+- `install.ps1` for Windows PowerShell installation.
+- README badges for license, latest release, and platform.
+- Release notes that state what changed and how to install.
 
 ## Staging Rules
 

@@ -86,6 +86,33 @@ check_license() {
   warn "License file is missing. Ask the user which license to use before publishing."
 }
 
+check_readme_release_signals() {
+  local path="$1"
+  local readme="$path/README.md"
+
+  if [[ ! -f "$readme" ]]; then
+    return
+  fi
+
+  if grep -Eq 'img\.shields\.io/github/v/release|/releases/latest' "$readme"; then
+    echo "[OK] README.md has a release badge"
+  else
+    warn "README.md is missing a GitHub release badge or latest-release link."
+  fi
+
+  if grep -Eq 'curl[[:space:]]+(-[A-Za-z0-9]+[[:space:]]+)*https?://' "$readme"; then
+    echo "[OK] README.md has a curl install command"
+  else
+    warn "README.md is missing a one-line curl install command."
+  fi
+
+  if grep -Eq 'irm[[:space:]]+https?://.+\|[[:space:]]*iex' "$readme"; then
+    echo "[OK] README.md has a PowerShell install command"
+  else
+    warn "README.md is missing a one-line PowerShell install command."
+  fi
+}
+
 check_skill_frontmatter() {
   local path="$1"
   local skill_md="$path/SKILL.md"
@@ -165,6 +192,7 @@ show_quality_gate() {
   check_file "$path" "README.md" "README.md exists" "README.md is missing"
   check_file "$path" "README.zh-CN.md" "README.zh-CN.md exists" "README.zh-CN.md is missing"
   check_license "$path"
+  check_readme_release_signals "$path"
   check_mojibake "$path"
   check_placeholders "$path"
 

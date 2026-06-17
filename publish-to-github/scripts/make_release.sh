@@ -74,7 +74,10 @@ for skill in "${SKILLS[@]}"; do
 
   if [[ -f "$PACKAGER" ]]; then
     echo "Packaging $skill with package_skill.py..."
-    python "$PACKAGER" "$skill"
+    (
+      cd skill-creator
+      PYTHONIOENCODING=utf-8 python -m scripts.package_skill "../$skill" ..
+    )
     asset="${skill_basename}.skill"
   else
     echo "Packaging $skill as zip because package_skill.py was not found..."
@@ -88,6 +91,13 @@ for skill in "${SKILLS[@]}"; do
 
   ASSETS+=("$asset")
   echo "  -> $asset"
+done
+
+for installer in publish-to-github/scripts/install.sh publish-to-github/scripts/install.ps1; do
+  if [[ -f "$installer" ]]; then
+    ASSETS+=("$installer")
+    echo "  -> $installer"
+  fi
 done
 
 if [[ ${#ASSETS[@]} -eq 0 ]]; then
