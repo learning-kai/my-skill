@@ -1,0 +1,4 @@
+interface:
+  display_name: "Publish to GitHub"
+  short_description: "Review and publish projects or skills to GitHub"
+  default_prompt: "Use $publish-to-github to review this project or skill, run preflight checks, and publish it to GitHub."

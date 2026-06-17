@@ -1,0 +1,335 @@
+#!/usr/bin/env bash
+# preflight.sh - read-only pre-publish checks for projects and skills.
+# Usage:
+#   ./scripts/preflight.sh --repo-root <path> --mode auto --project-name <path>
+#   ./scripts/preflight.sh --repo-root <path> --mode skill --project-name <skill>
+#   ./scripts/preflight.sh --repo-root <path> --mode project --project-name .
+#   ./scripts/preflight.sh --repo-root <path> --all
+#
+# This script does NOT stage, commit, push, delete, rename, or move files.
+
+set -euo pipefail
+
+REPO_ROOT="."
+PROJECT_NAME=""
+SKILL_NAME=""
+MODE="auto"
+ALL=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --repo-root) REPO_ROOT="$2"; shift 2 ;;
+    --project-name) PROJECT_NAME="$2"; shift 2 ;;
+    --skill-name) SKILL_NAME="$2"; shift 2 ;;
+    --mode) MODE="$2"; shift 2 ;;
+    --all) ALL=true; shift ;;
+    *) echo "Unknown argument: $1" >&2; exit 1 ;;
+  esac
+done
+
+case "$MODE" in
+  auto|project|skill) ;;
+  *) echo "ERROR: --mode must be auto, project, or skill" >&2; exit 1 ;;
+esac
+
+section() { echo ""; echo "== $1 =="; }
+warn() { echo "WARNING: $1" >&2; }
+
+top_level_name() {
+  local path="${1//\\//}"
+  printf '%s\n' "${path%%/*}"
+}
+
+target_path() {
+  local repo="$1"
+  local target="$2"
+  if [[ -z "$target" || "$target" == "." ]]; then
+    printf '%s\n' "$repo"
+  else
+    printf '%s\n' "$repo/$target"
+  fi
+}
+
+effective_mode() {
+  local path="$1"
+  if [[ "$MODE" != "auto" ]]; then
+    printf '%s\n' "$MODE"
+  elif [[ -f "$path/SKILL.md" ]]; then
+    printf 'skill\n'
+  else
+    printf 'project\n'
+  fi
+}
+
+check_file() {
+  local path="$1"
+  local file="$2"
+  local ok="$3"
+  local missing="$4"
+
+  if [[ -f "$path/$file" ]]; then
+    echo "[OK] $ok"
+  else
+    warn "$missing"
+  fi
+}
+
+check_license() {
+  local path="$1"
+  local name
+  for name in LICENSE LICENSE.md LICENSE.txt; do
+    if [[ -f "$path/$name" ]]; then
+      echo "[OK] License file exists: $name"
+      return
+    fi
+  done
+  warn "License file is missing. Ask the user which license to use before publishing."
+}
+
+check_skill_frontmatter() {
+  local path="$1"
+  local skill_md="$path/SKILL.md"
+  if [[ ! -f "$skill_md" ]]; then
+    warn "SKILL.md is missing"
+    return
+  fi
+
+  local name desc
+  name="$(awk 'BEGIN{in_fm=0} /^---$/{in_fm++; next} in_fm==1 && /^name:[[:space:]]*/{sub(/^name:[[:space:]]*/, ""); gsub(/["'\''"]/, ""); print; exit}' "$skill_md")"
+  desc="$(awk 'BEGIN{in_fm=0} /^---$/{in_fm++; next} in_fm==1 && /^description:[[:space:]]*/{sub(/^description:[[:space:]]*/, ""); print; exit}' "$skill_md")"
+
+  if [[ -z "$name" ]]; then
+    warn "SKILL.md frontmatter name is missing or not kebab-case"
+  elif [[ ! "$name" =~ ^[a-z0-9-]+$ ]]; then
+    warn "SKILL.md frontmatter name is missing or not kebab-case"
+  elif [[ -z "$desc" ]]; then
+    warn "SKILL.md frontmatter description is missing or empty"
+  else
+    echo "[OK] SKILL.md frontmatter: name=$name"
+  fi
+}
+
+check_mojibake() {
+  local path="$1"
+  local hits
+  local marker_regex
+  marker_regex="$(printf '%b|%b|%b|%b|%b|%b|%b|%b' '\u9225' '\u922E' '\u9239' '\u9242' '\u9241' '\u99C3' '\u6F0F' '\uFFFD')"
+  hits="$(grep -RIlE "$marker_regex" "$path" \
+    --exclude-dir=.git \
+    --exclude-dir=node_modules \
+    --exclude-dir=dist \
+    --exclude-dir=build \
+    --exclude-dir=.cache \
+    --exclude-dir=__pycache__ \
+    --exclude-dir=.pytest_cache 2>/dev/null \
+    | grep -Ev '/scripts/preflight\.(ps1|sh)$' || true)"
+
+  if [[ -z "$hits" ]]; then
+    echo "[OK] No obvious mojibake markers found"
+  else
+    while IFS= read -r file; do
+      [[ -n "$file" ]] && warn "Possible mojibake: $file"
+    done <<< "$hits"
+  fi
+}
+
+check_placeholders() {
+  local path="$1"
+  local hits
+  local placeholder_regex
+  placeholder_regex="YOUR_""USERNAME|YOUR_""REPO|<model""-name>|<path/to""/skill>"
+  hits="$(grep -RInE "$placeholder_regex" "$path" \
+    --exclude-dir=.git \
+    --exclude-dir=node_modules \
+    --exclude-dir=dist \
+    --exclude-dir=build \
+    --exclude-dir=.cache \
+    --exclude-dir=__pycache__ \
+    --exclude-dir=.pytest_cache 2>/dev/null \
+    | grep -Ev '/scripts/preflight\.(ps1|sh):' || true)"
+
+  if [[ -z "$hits" ]]; then
+    echo "[OK] No obvious placeholder literals found"
+  else
+    while IFS= read -r hit; do
+      [[ -n "$hit" ]] && warn "Placeholder literal found: $hit"
+    done <<< "$hits"
+  fi
+}
+
+show_quality_gate() {
+  local path="$1"
+  local mode="$2"
+
+  section "High-Star Readiness Gate"
+  check_file "$path" "README.md" "README.md exists" "README.md is missing"
+  check_file "$path" "README.zh-CN.md" "README.zh-CN.md exists" "README.zh-CN.md is missing"
+  check_license "$path"
+  check_mojibake "$path"
+  check_placeholders "$path"
+
+  if [[ "$mode" == "skill" ]]; then
+    check_skill_frontmatter "$path"
+  fi
+}
+
+show_verification_commands() {
+  local path="$1"
+  local found=false
+
+  section "Suggested Verification Commands"
+
+  if [[ -f "$path/package.json" ]]; then
+    if grep -q '"test"[[:space:]]*:' "$path/package.json"; then
+      echo "npm test"
+      found=true
+    fi
+    if grep -q '"build"[[:space:]]*:' "$path/package.json"; then
+      echo "npm run build"
+      found=true
+    fi
+    if grep -q '"lint"[[:space:]]*:' "$path/package.json"; then
+      echo "npm run lint"
+      found=true
+    fi
+  fi
+
+  if [[ -f "$path/pyproject.toml" || -f "$path/pytest.ini" || -d "$path/tests" ]]; then
+    echo "python -m pytest"
+    found=true
+  fi
+
+  if [[ -f "$path/Cargo.toml" ]]; then
+    echo "cargo test"
+    echo "cargo build"
+    found=true
+  fi
+
+  if [[ -f "$path/go.mod" ]]; then
+    echo "go test ./..."
+    found=true
+  fi
+
+  if [[ "$found" == "false" ]]; then
+    warn "No standard test/build command detected. Mention this explicitly before publishing."
+  fi
+}
+
+cd "$REPO_ROOT"
+REPO_ABS="$(pwd)"
+
+section "Repository"
+echo "Root: $REPO_ABS"
+
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "ERROR: Not a Git repository." >&2
+  exit 1
+fi
+
+BRANCH="$(git branch --show-current)"
+UPSTREAM="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo "(none)")"
+echo "Branch:   $BRANCH"
+echo "Upstream: $UPSTREAM"
+
+section "Remotes"
+git remote -v || warn "No Git remotes configured."
+
+section "GitHub CLI"
+if command -v gh >/dev/null 2>&1; then
+  gh --version | head -1
+  gh auth status || warn "GitHub CLI exists but is not authenticated."
+else
+  warn "GitHub CLI (gh) not found. Push may still work through Git credentials."
+fi
+
+section "Git Status"
+STATUS="$(git status --porcelain)"
+if [[ -z "$STATUS" ]]; then
+  echo "Working tree has no pending changes."
+else
+  echo "$STATUS"
+fi
+
+TARGETS=()
+if [[ -n "$PROJECT_NAME" ]]; then
+  TARGETS=("$PROJECT_NAME")
+elif [[ -n "$SKILL_NAME" ]]; then
+  warn "--skill-name is kept for compatibility. Prefer --project-name with --mode skill."
+  TARGETS=("$SKILL_NAME")
+elif [[ "$ALL" == "true" ]]; then
+  while IFS= read -r line; do
+    [[ -n "$line" && "$line" != .* ]] && TARGETS+=("$line")
+  done < <(git status --porcelain | awk '{print $2}' | while IFS= read -r path; do top_level_name "$path"; done | sort -u)
+else
+  warn "Neither --project-name nor --all provided. Showing all changed top-level directories."
+  while IFS= read -r line; do
+    [[ -n "$line" && "$line" != .* ]] && TARGETS+=("$line")
+  done < <(git status --porcelain | awk '{print $2}' | while IFS= read -r path; do top_level_name "$path"; done | sort -u)
+fi
+
+if [[ ${#TARGETS[@]} -eq 0 ]]; then
+  warn "No target directories found from current changes."
+else
+  for target in "${TARGETS[@]}"; do
+    path="$(target_path "$REPO_ABS" "$target")"
+
+    section "Target Project"
+    echo "Name: $target"
+    echo "Path: $path"
+
+    if [[ ! -d "$path" ]]; then
+      warn "Target directory not found: $target"
+      continue
+    fi
+
+    mode="$(effective_mode "$path")"
+    echo "Mode: $mode"
+    if [[ "$MODE" != "$mode" ]]; then
+      echo "Requested mode: $MODE"
+    fi
+
+    show_quality_gate "$path" "$mode"
+    show_verification_commands "$path"
+  done
+fi
+
+section "Repository Ignore File"
+if [[ -f ".gitignore" ]]; then
+  echo "[OK] .gitignore exists"
+else
+  warn ".gitignore is missing. Review generated files carefully before staging."
+fi
+
+section "Risky Pending Paths"
+RISKY="$(git status --porcelain | awk '{print $2}' | grep -Ei '(^|/)\.env($|\.)|(^|/)node_modules/|(^|/)dist/|(^|/)build/|(^|/)\.cache/|(^|/)__pycache__/|(^|/)\.pytest_cache/|(^|/)playwright-report/|(^|/)test-results/|\.log$|\.pem$|\.key$|(^|/)id_rsa($|\.)|token|credential|secret' || true)"
+if [[ -z "$RISKY" ]]; then
+  echo "No obvious secret/cache/build paths found in pending changes."
+else
+  while IFS= read -r path; do
+    warn "$path"
+  done <<< "$RISKY"
+fi
+
+section "Large Pending Files"
+FOUND_LARGE=false
+while IFS= read -r path; do
+  if [[ -f "$path" ]]; then
+    size="$(stat -c%s "$path" 2>/dev/null || stat -f%z "$path" 2>/dev/null || echo 0)"
+    if (( size > 5 * 1024 * 1024 )); then
+      if command -v bc >/dev/null 2>&1; then
+        mb="$(echo "scale=2; $size/1048576" | bc)"
+      else
+        mb="$(( size / 1048576 ))"
+      fi
+      warn "Large file: $path (${mb} MB)"
+      FOUND_LARGE=true
+    fi
+  fi
+done < <(git status --porcelain | awk '{print $2}')
+
+if [[ "$FOUND_LARGE" == "false" ]]; then
+  echo "No pending files larger than 5 MB found."
+fi
+
+echo ""
+echo "Preflight complete. Review warnings before staging. This script did not change files, stage commits, or push."
