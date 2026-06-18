@@ -22,6 +22,7 @@
 ## 核心特性
 
 - 支持普通项目和 agent skill 目录发布到 GitHub。
+- 支持二次发布：对已发布仓库做精准优化（刷新 README、描述、badge、release），或在已发布内容与当前需求差别很大时重写并重新发布。
 - 根据目标路径自动识别 project 模式或 skill 模式。
 - 强制双语 README 结构：英文 `README.md` 和简体中文 `README.zh-CN.md`。
 - 检查高 star README 信号：顶部 badge、语言互链、一句话定位、快速开始、release/安装路径、故障排查、路线图、贡献说明和 License。
@@ -75,6 +76,10 @@ Use publish-to-github to review and release my local skill directory.
 
 ```text
 Use publish-to-github to run a high-star README review before I push.
+```
+
+```text
+Use publish-to-github to optimize my already-published repo, or rewrite and republish it if it no longer matches what I want.
 ```
 
 ### 预检

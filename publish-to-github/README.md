@@ -22,6 +22,7 @@ This skill exists to make publishing feel like a small release review, even for 
 ## Core Features
 
 - Publishes ordinary projects and agent skill directories to GitHub.
+- Republishes already-published repos: optimizes the live README, description, badges, and release with surgical fixes, or rewrites and republishes when the published repo diverges greatly from current requirements.
 - Auto-detects project mode or skill mode from the target path.
 - Enforces bilingual README structure: `README.md` in English and `README.zh-CN.md` in Simplified Chinese.
 - Checks high-star README signals: top badges, language switch, one-line positioning, quick start, release/install path, troubleshooting, roadmap, contribution notes, and license.
@@ -75,6 +76,10 @@ Use publish-to-github to review and release my local skill directory.
 
 ```text
 Use publish-to-github to run a high-star README review before I push.
+```
+
+```text
+Use publish-to-github to optimize my already-published repo, or rewrite and republish it if it no longer matches what I want.
 ```
 
 ### Preflight
