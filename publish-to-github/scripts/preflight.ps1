@@ -228,6 +228,70 @@ function Test-ReadmeReleaseSignals {
   }
 }
 
+function Get-ReadmeTopBlock {
+  param([string]$Content)
+
+  $lines = $Content -split "\r?\n"
+  $topLines = New-Object System.Collections.Generic.List[string]
+  foreach ($line in $lines) {
+    if ($topLines.Count -gt 0 -and $line -match "^##\s+") {
+      break
+    }
+
+    [void]$topLines.Add($line)
+  }
+
+  return ($topLines -join "`n")
+}
+
+function Test-ReadmeBadgeBlock {
+  param([string]$TargetPath)
+
+  $readmeChecks = @(
+    @{ File = "README.md"; Name = "README.md" },
+    @{ File = "README.zh-CN.md"; Name = "README.zh-CN.md" }
+  )
+
+  foreach ($check in $readmeChecks) {
+    $file = Join-Path $TargetPath $check.File
+    if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+      continue
+    }
+
+    $content = Get-Content -Raw -Encoding utf8 -LiteralPath $file
+    $topBlock = Get-ReadmeTopBlock $content
+    $badgeMatches = [regex]::Matches(
+      $topBlock,
+      "!\[[^\]]*\]\([^)]*(?:shields\.io|badge\.svg|actions/workflows)[^)]*\)",
+      [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
+    )
+
+    if ($badgeMatches.Count -ge 3) {
+      Write-Host "[OK] $($check.Name) has 3+ top badges ($($badgeMatches.Count) found)"
+    } else {
+      Warn "$($check.Name) should have at least 3 truthful top badges: License, release/version, and platform/tech."
+    }
+
+    if ($topBlock -match "(?i)!\[[^\]]*(license|licence)[^\]]*\]\([^)]+\)|badge/(license|licence)-|license[-:]") {
+      Write-Host "[OK] $($check.Name) has a License badge"
+    } else {
+      Warn "$($check.Name) is missing a License badge near the top."
+    }
+
+    if ($topBlock -match "(?i)github/v/release|releases/latest|latest[ -]?release|badge/(release|version)-|\bversion\b") {
+      Write-Host "[OK] $($check.Name) has a release/version badge"
+    } else {
+      Warn "$($check.Name) is missing a latest release or version badge near the top."
+    }
+
+    if ($topBlock -match "(?i)platform|windows|macos|linux|powershell|bash|github[ -]?cli|python|node\.?js|nodejs|rust|go|react|tauri|vite|docker|npm|pnpm|yarn|bun|cargo") {
+      Write-Host "[OK] $($check.Name) has a platform/tech badge"
+    } else {
+      Warn "$($check.Name) is missing a platform or real tech-stack badge near the top."
+    }
+  }
+}
+
 function Test-ReadmeLanguageLinks {
   param([string]$TargetPath)
 
@@ -259,8 +323,42 @@ function Test-ReadmeCoreSections {
   param([string]$TargetPath)
 
   $sectionChecks = @(
-    @{ File = "README.md"; Labels = @("Quick Start", "Installation", "Usage", "Project Publishing", "Skill Publishing", "Troubleshooting", "License"); Name = "README.md" },
-    @{ File = "README.zh-CN.md"; Labels = @("快速开始", "安装", "使用", "普通项目发布", "Skill 发布", "故障排查", "License"); Name = "README.zh-CN.md" }
+    @{
+      File = "README.md"
+      Name = "README.md"
+      Sections = @(
+        @{ Label = "Why"; Pattern = "Why(?:\s|$)|Why This Exists|Why Use" },
+        @{ Label = "Core Features"; Pattern = "Core Features|Features" },
+        @{ Label = "Screenshots & Demo"; Pattern = "Screenshots?\s*(?:&|and)\s*Demo|Screenshots?|Demo" },
+        @{ Label = "Quick Start"; Pattern = "Quick Start" },
+        @{ Label = "Engineering Quality"; Pattern = "Engineering Quality|Quality" },
+        @{ Label = "Project Docs"; Pattern = "Project Docs|Documentation|Docs" },
+        @{ Label = "Privacy & Security"; Pattern = "Privacy\s*(?:&|and)\s*Security|Security|Privacy" },
+        @{ Label = "Release & Updates"; Pattern = "Release\s*(?:&|and)\s*Updates|Releases?|Updates?" },
+        @{ Label = "Roadmap"; Pattern = "Roadmap" },
+        @{ Label = "Contributing"; Pattern = "Contributing|Contribution" },
+        @{ Label = "Troubleshooting"; Pattern = "Troubleshooting|FAQ" },
+        @{ Label = "License"; Pattern = "License" }
+      )
+    },
+    @{
+      File = "README.zh-CN.md"
+      Name = "README.zh-CN.md"
+      Sections = @(
+        @{ Label = "为什么做"; Pattern = "为什么做|为什么|项目动机" },
+        @{ Label = "核心特性"; Pattern = "核心特性|功能|主要功能" },
+        @{ Label = "截图与演示"; Pattern = "截图与演示|截图|演示" },
+        @{ Label = "快速开始"; Pattern = "快速开始" },
+        @{ Label = "工程质量"; Pattern = "工程质量|质量" },
+        @{ Label = "项目文档"; Pattern = "项目文档|文档" },
+        @{ Label = "隐私与安全边界"; Pattern = "隐私与安全边界|隐私与安全|安全边界" },
+        @{ Label = "发布与更新"; Pattern = "发布与更新|发布|更新" },
+        @{ Label = "路线图"; Pattern = "路线图" },
+        @{ Label = "贡献"; Pattern = "贡献" },
+        @{ Label = "故障排查"; Pattern = "故障排查|常见问题|FAQ" },
+        @{ Label = "License"; Pattern = "License|许可证|许可" }
+      )
+    }
   )
 
   foreach ($check in $sectionChecks) {
@@ -270,12 +368,12 @@ function Test-ReadmeCoreSections {
     }
 
     $content = Get-Content -Raw -Encoding utf8 -LiteralPath $file
-    foreach ($label in $check.Labels) {
-      $pattern = "(?m)^#{2,3}\s+$([regex]::Escape($label))(?:\s|$)"
+    foreach ($section in $check.Sections) {
+      $pattern = "(?m)^#{2,3}\s+(?:$($section.Pattern))(?:\s|$|[:：-])"
       if ($content -match $pattern) {
-        Write-Host "[OK] $($check.Name) has $label section"
+        Write-Host "[OK] $($check.Name) has $($section.Label) section"
       } else {
-        Warn "$($check.Name) is missing a high-star README section: $label."
+        Warn "$($check.Name) is missing a Kaoyan-style README section: $($section.Label)."
       }
     }
   }
@@ -377,6 +475,7 @@ function Show-QualityGate {
   Test-FilePresence -TargetPath $TargetPath -FileName "README.zh-CN.md" -OkMessage "README.zh-CN.md exists" -MissingMessage "README.zh-CN.md is missing" | Out-Null
   Test-License -TargetPath $TargetPath
   Test-ReadmeReleaseSignals -TargetPath $TargetPath
+  Test-ReadmeBadgeBlock -TargetPath $TargetPath
   Test-ReadmeLanguageLinks -TargetPath $TargetPath
   Test-ReadmeCoreSections -TargetPath $TargetPath
   Test-Mojibake -TargetPath $TargetPath

@@ -113,6 +113,50 @@ check_readme_release_signals() {
   fi
 }
 
+readme_top_block() {
+  local file="$1"
+  awk 'seen && /^##[[:space:]]+/ { exit } { print; seen=1 }' "$file"
+}
+
+check_readme_badges() {
+  local path="$1"
+  local file name top_block badge_count
+
+  for name in README.md README.zh-CN.md; do
+    file="$path/$name"
+    if [[ ! -f "$file" ]]; then
+      continue
+    fi
+
+    top_block="$(readme_top_block "$file")"
+    badge_count="$(printf '%s\n' "$top_block" | { grep -Eo '!\[[^]]*\]\([^)]*(shields\.io|badge\.svg|actions/workflows)[^)]*\)' || true; } | wc -l | tr -d '[:space:]')"
+
+    if (( badge_count >= 3 )); then
+      echo "[OK] $name has 3+ top badges ($badge_count found)"
+    else
+      warn "$name should have at least 3 truthful top badges: License, release/version, and platform/tech."
+    fi
+
+    if printf '%s\n' "$top_block" | grep -Eiq '!\[[^]]*(license|licence)[^]]*\]\([^)]+\)|badge/(license|licence)-|license[-:]'; then
+      echo "[OK] $name has a License badge"
+    else
+      warn "$name is missing a License badge near the top."
+    fi
+
+    if printf '%s\n' "$top_block" | grep -Eiq 'github/v/release|releases/latest|latest[ -]?release|badge/(release|version)-|\bversion\b'; then
+      echo "[OK] $name has a release/version badge"
+    else
+      warn "$name is missing a latest release or version badge near the top."
+    fi
+
+    if printf '%s\n' "$top_block" | grep -Eiq 'platform|windows|macos|linux|powershell|bash|github[ -]?cli|python|node\.?js|nodejs|rust|go|react|tauri|vite|docker|npm|pnpm|yarn|bun|cargo'; then
+      echo "[OK] $name has a platform/tech badge"
+    else
+      warn "$name is missing a platform or real tech-stack badge near the top."
+    fi
+  done
+}
+
 check_readme_language_links() {
   local path="$1"
   local readme="$path/README.md"
@@ -139,26 +183,52 @@ check_readme_core_sections() {
   local path="$1"
   local readme="$path/README.md"
   local readme_zh="$path/README.zh-CN.md"
-  local label
+  local label pattern
 
   if [[ -f "$readme" ]]; then
-    for label in "Quick Start" Installation Usage "Project Publishing" "Skill Publishing" Troubleshooting License; do
-      if grep -Eq "^#{2,3}[[:space:]]+$label([[:space:]]|$)" "$readme"; then
+    while IFS='|' read -r label pattern; do
+      if grep -Eq "^#{2,3}[[:space:]]+($pattern)([[:space:]]|$|[:：-])" "$readme"; then
         echo "[OK] README.md has $label section"
       else
-        warn "README.md is missing a high-star README section: $label."
+        warn "README.md is missing a Kaoyan-style README section: $label."
       fi
-    done
+    done <<'EOF'
+Why|Why([[:space:]]|$)|Why This Exists|Why Use
+Core Features|Core Features|Features
+Screenshots & Demo|Screenshots?[[:space:]]*(&|and)[[:space:]]*Demo|Screenshots?|Demo
+Quick Start|Quick Start
+Engineering Quality|Engineering Quality|Quality
+Project Docs|Project Docs|Documentation|Docs
+Privacy & Security|Privacy[[:space:]]*(&|and)[[:space:]]*Security|Security|Privacy
+Release & Updates|Release[[:space:]]*(&|and)[[:space:]]*Updates|Releases?|Updates?
+Roadmap|Roadmap
+Contributing|Contributing|Contribution
+Troubleshooting|Troubleshooting|FAQ
+License|License
+EOF
   fi
 
   if [[ -f "$readme_zh" ]]; then
-    for label in 快速开始 安装 使用 普通项目发布 "Skill 发布" 故障排查 License; do
-      if grep -Eq "^#{2,3}[[:space:]]+$label([[:space:]]|$)" "$readme_zh"; then
+    while IFS='|' read -r label pattern; do
+      if grep -Eq "^#{2,3}[[:space:]]+($pattern)([[:space:]]|$|[:：-])" "$readme_zh"; then
         echo "[OK] README.zh-CN.md has $label section"
       else
-        warn "README.zh-CN.md is missing a high-star README section: $label."
+        warn "README.zh-CN.md is missing a Kaoyan-style README section: $label."
       fi
-    done
+    done <<'EOF'
+为什么做|为什么做|为什么|项目动机
+核心特性|核心特性|功能|主要功能
+截图与演示|截图与演示|截图|演示
+快速开始|快速开始
+工程质量|工程质量|质量
+项目文档|项目文档|文档
+隐私与安全边界|隐私与安全边界|隐私与安全|安全边界
+发布与更新|发布与更新|发布|更新
+路线图|路线图
+贡献|贡献
+故障排查|故障排查|常见问题|FAQ
+License|License|许可证|许可
+EOF
   fi
 }
 
@@ -242,6 +312,7 @@ show_quality_gate() {
   check_file "$path" "README.zh-CN.md" "README.zh-CN.md exists" "README.zh-CN.md is missing"
   check_license "$path"
   check_readme_release_signals "$path"
+  check_readme_badges "$path"
   check_readme_language_links "$path"
   check_readme_core_sections "$path"
   check_mojibake "$path"

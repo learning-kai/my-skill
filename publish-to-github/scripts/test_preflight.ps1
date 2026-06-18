@@ -34,20 +34,49 @@ function New-ReadmeContent {
     "English | [简体中文](README.zh-CN.md)"
   }
 
+  $whyHeading = if ($Chinese) { "为什么做" } else { "Why" }
+  $featuresHeading = if ($Chinese) { "核心特性" } else { "Core Features" }
+  $screenshotsHeading = if ($Chinese) { "截图与演示" } else { "Screenshots & Demo" }
+  $quickStartHeading = if ($Chinese) { "快速开始" } else { "Quick Start" }
   $installHeading = if ($Chinese) { "安装" } else { "Installation" }
   $usageHeading = if ($Chinese) { "使用" } else { "Usage" }
-  $projectPublishingHeading = if ($Chinese) { "普通项目发布" } else { "Project Publishing" }
-  $skillPublishingHeading = if ($Chinese) { "Skill 发布" } else { "Skill Publishing" }
+  $qualityHeading = if ($Chinese) { "工程质量" } else { "Engineering Quality" }
+  $docsHeading = if ($Chinese) { "项目文档" } else { "Project Docs" }
+  $privacyHeading = if ($Chinese) { "隐私与安全边界" } else { "Privacy & Security" }
+  $releaseHeading = if ($Chinese) { "发布与更新" } else { "Release & Updates" }
+  $roadmapHeading = if ($Chinese) { "路线图" } else { "Roadmap" }
+  $contributingHeading = if ($Chinese) { "贡献" } else { "Contributing" }
   $troubleshootingHeading = if ($Chinese) { "故障排查" } else { "Troubleshooting" }
 
   $content = @"
 # $Name
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/example/$Name)](https://github.com/example/$Name/releases/latest)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
+![Bash](https://img.shields.io/badge/shell-Bash-4EAA25)
 
 $languageLine
 
 $intro
+
+## $whyHeading
+
+This fixture exists to verify README quality gates.
+
+## $featuresHeading
+
+- Bilingual README checks.
+- Release install checks.
+- Badge checks.
+
+## $screenshotsHeading
+
+Command-line and skill fixtures use command output instead of screenshots.
+
+## $quickStartHeading
+
+Run the preflight script.
 
 ## $installHeading
 
@@ -63,13 +92,29 @@ irm https://github.com/example/$Name/releases/latest/download/install.ps1 | iex
 
 Run the tool.
 
-## $projectPublishingHeading
+## $qualityHeading
 
-Follow the project publishing flow.
+The fixture exposes deterministic sections for preflight tests.
 
-## $skillPublishingHeading
+## $docsHeading
 
-Follow the skill publishing flow.
+Read the README pair.
+
+## $privacyHeading
+
+Do not publish secrets.
+
+## $releaseHeading
+
+Follow the release flow and attach install assets.
+
+## $roadmapHeading
+
+- Keep the fixture aligned with README gates.
+
+## $contributingHeading
+
+Keep tests focused and readable.
 
 ## $troubleshootingHeading
 
@@ -153,14 +198,26 @@ try {
   Assert-Contains $projectResult.Text "[OK] README.md has a release badge"
   Assert-Contains $projectResult.Text "[OK] README.md has a curl install command"
   Assert-Contains $projectResult.Text "[OK] README.md has a PowerShell install command"
+  Assert-Contains $projectResult.Text "[OK] README.md has 3+ top badges"
+  Assert-Contains $projectResult.Text "[OK] README.md has a License badge"
+  Assert-Contains $projectResult.Text "[OK] README.md has a release/version badge"
+  Assert-Contains $projectResult.Text "[OK] README.md has a platform/tech badge"
+  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has 3+ top badges"
+  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has a License badge"
+  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has a release/version badge"
+  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has a platform/tech badge"
   Assert-Contains $projectResult.Text "[OK] README.md links to README.zh-CN.md"
   Assert-Contains $projectResult.Text "[OK] README.zh-CN.md links back to README.md"
-  Assert-Contains $projectResult.Text "[OK] README.md has Installation section"
-  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has 安装 section"
-  Assert-Contains $projectResult.Text "[OK] README.md has Project Publishing section"
-  Assert-Contains $projectResult.Text "[OK] README.md has Skill Publishing section"
-  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has 普通项目发布 section"
-  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has Skill 发布 section"
+  Assert-Contains $projectResult.Text "[OK] README.md has Why section"
+  Assert-Contains $projectResult.Text "[OK] README.md has Core Features section"
+  Assert-Contains $projectResult.Text "[OK] README.md has Screenshots & Demo section"
+  Assert-Contains $projectResult.Text "[OK] README.md has Engineering Quality section"
+  Assert-Contains $projectResult.Text "[OK] README.md has Release & Updates section"
+  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has 为什么做 section"
+  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has 核心特性 section"
+  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has 截图与演示 section"
+  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has 工程质量 section"
+  Assert-Contains $projectResult.Text "[OK] README.zh-CN.md has 发布与更新 section"
   Assert-Contains $projectResult.Text "npm test"
   Assert-Contains $projectResult.Text "npm run build"
 
@@ -176,14 +233,22 @@ try {
   Assert-Contains $skillResult.Text "[OK] README.md has a release badge"
   Assert-Contains $skillResult.Text "[OK] README.md has a curl install command"
   Assert-Contains $skillResult.Text "[OK] README.md has a PowerShell install command"
+  Assert-Contains $skillResult.Text "[OK] README.md has 3+ top badges"
+  Assert-Contains $skillResult.Text "[OK] README.md has a License badge"
+  Assert-Contains $skillResult.Text "[OK] README.md has a release/version badge"
+  Assert-Contains $skillResult.Text "[OK] README.md has a platform/tech badge"
   Assert-Contains $skillResult.Text "[OK] README.md links to README.zh-CN.md"
   Assert-Contains $skillResult.Text "[OK] README.zh-CN.md links back to README.md"
   Assert-Contains $skillResult.Text "[OK] README.md has Troubleshooting section"
   Assert-Contains $skillResult.Text "[OK] README.zh-CN.md has 故障排查 section"
-  Assert-Contains $skillResult.Text "[OK] README.md has Project Publishing section"
-  Assert-Contains $skillResult.Text "[OK] README.md has Skill Publishing section"
-  Assert-Contains $skillResult.Text "[OK] README.zh-CN.md has 普通项目发布 section"
-  Assert-Contains $skillResult.Text "[OK] README.zh-CN.md has Skill 发布 section"
+  Assert-Contains $skillResult.Text "[OK] README.md has Project Docs section"
+  Assert-Contains $skillResult.Text "[OK] README.md has Privacy & Security section"
+  Assert-Contains $skillResult.Text "[OK] README.md has Roadmap section"
+  Assert-Contains $skillResult.Text "[OK] README.md has Contributing section"
+  Assert-Contains $skillResult.Text "[OK] README.zh-CN.md has 项目文档 section"
+  Assert-Contains $skillResult.Text "[OK] README.zh-CN.md has 隐私与安全边界 section"
+  Assert-Contains $skillResult.Text "[OK] README.zh-CN.md has 路线图 section"
+  Assert-Contains $skillResult.Text "[OK] README.zh-CN.md has 贡献 section"
 
   $missingReadme = Join-Path $skillRepo "README.zh-CN.md"
   Remove-Item -LiteralPath $missingReadme

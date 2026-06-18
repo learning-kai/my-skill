@@ -82,20 +82,52 @@ Require bilingual README files for every publish target:
   - `README.zh-CN.md` links back to `README.md`.
 - The two README files should expose the same core sections, even when the wording is localized instead of mechanically translated.
 
-Both READMEs should include:
+### Kaoyan-Style README Blueprint
 
-- A concise one-sentence positioning statement near the top.
-- What the project or skill does.
-- Prerequisites and supported platforms.
-- Installation or setup.
-- A quickstart or fastest useful path.
-- Basic usage examples.
-- Configuration, if any.
-- Test/build/publish commands, if relevant.
-- Troubleshooting or FAQ for common failure points.
-- License.
+When generating or repairing README files, use the mature project structure shown by the `考研专注` reference README: credibility first, value second, workflow third. The top of both README files should follow this order:
 
-For high-star-style README structure, prefer a compact top section with a clear title, badges, language switch, one-sentence value proposition, quickstart, installation, usage examples, release or version information, FAQ/troubleshooting, contribution notes when appropriate, and license. Do not bury the value proposition below three screens of ceremony; users are impatient, and honestly they are right to be.
+1. Project name.
+2. Badge block.
+3. Language switch.
+4. One-sentence positioning statement.
+
+The badge block is a quality signal, not a sticker wall. Include at least three truthful badges:
+
+- Required: License.
+- Required: Latest release or version.
+- Required: Platform or real tech stack.
+- Optional when true: CI, test status, language/runtime, framework, build tool, package manager, GitHub CLI, PowerShell, Bash, Docker, Tauri, React, Rust, Python, Node.js, Go.
+
+Infer badges from real repository facts before writing them:
+
+- `LICENSE`, `LICENSE.md`, or `LICENSE.txt` for the license badge.
+- GitHub Releases, package metadata, or version files for release/version badges.
+- `.github/workflows/` for CI badges.
+- `package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `requirements.txt`, `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lockb`, `tauri.conf.json`, Vite/React config, or project scripts for tech badges.
+- OS support from documented scripts, build targets, or existing project claims.
+
+Do not fake badges for CI, test coverage, downloads, package versions, supported platforms, or framework support. If a useful badge cannot be proven from the repo, leave it out and add a warning or TODO instead. A fake badge is worse than no badge; it tells users the project is cosplaying maturity.
+
+Both README files should use equivalent Kaoyan-style core sections:
+
+- `Why` / `为什么做`
+- `Core Features` / `核心特性`
+- `Screenshots & Demo` / `截图与演示`
+- `Quick Start` / `快速开始`
+- `Engineering Quality` / `工程质量`
+- `Project Docs` / `项目文档`
+- `Privacy & Security` / `隐私与安全边界`
+- `Release & Updates` / `发布与更新`
+- `Roadmap` / `路线图`
+- `Contributing` / `贡献`
+- `License`
+
+Scale the screenshots section by project type:
+
+- Visual projects, desktop apps, mobile apps, web apps, games, dashboards, and UI libraries should include screenshots, GIFs, demos, playgrounds, or a concrete asset plan.
+- CLI tools, libraries, automation workflows, and skills should not force decorative screenshots. Use command examples, release assets, install flow, troubleshooting, and typical workflows as the proof of value.
+
+The README should still include prerequisites, installation or setup, usage examples, configuration when relevant, test/build/publish commands, troubleshooting or FAQ, release/version information, contribution guidance, and license. Do not bury the value proposition below three screens of ceremony; users are impatient, and honestly they are right to be.
 
 For skills, also include:
 
