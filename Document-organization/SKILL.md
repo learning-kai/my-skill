@@ -1,9 +1,6 @@
 ---
 name: document-organization
-description: "Use when the user asks to organize, sort, clean up, rename, move, archive, deduplicate, or restructure files and folders, especially messy download folders, document libraries, code projects, image assets, or mixed directories. Also use when the user wants a file organization plan first, then execution after confirmation."
-argument-hint: "整理文件/整理文件夹/重命名/归档/去重"
-user-invocable: true
-disable-model-invocation: false
+description: "Use when the user asks to organize, sort, clean up, rename, move, archive, deduplicate, or restructure files and folders, especially messy download folders, document libraries, code projects, image assets, course materials, or mixed directories. Also use when the user says 整理文件, 整理文件夹, 重命名, 归档, 去重, or wants a file organization plan before execution."
 ---
 
 # Document Organization
