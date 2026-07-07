@@ -1,0 +1,4 @@
+interface:
+  display_name: "Task Decomposer"
+  short_description: "First-principles task decomposition"
+  default_prompt: "Use $task-decomposer to decompose this task into an executable plan."
